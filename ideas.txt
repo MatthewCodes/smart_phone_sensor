@@ -1,0 +1,7 @@
+1) Phone on computer to detect when the CPU/GPU is under heavy usage
+
+2) Phone on floor of car to detect potholes
+
+3) Phone outside to detect changes in light (not anomalous)
+
+4) Washing machine to detect when someone puts to many clothes in
