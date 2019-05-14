@@ -1,7 +1,14 @@
-1) Phone on computer to detect when the CPU/GPU is under heavy usage
+Top three:
+1) Is it possible to predict heart rate from Skateboard speed
 
-2) Phone on floor of car to detect potholes
+2) Possible to predict what gear are you in for your bike based off of velocity and acceleration
 
-3) Phone outside to detect changes in light (not anomalous)
+3) Washing machine to detect when someone puts to many clothes in from movement of washing machine
 
-4) Washing machine to detect when someone puts to many clothes in
+
+Bottom three:
+4) Failing hard-drive 
+
+5) Tire Pressure Across vehicles
+
+6) Phone on floor of car to detect potholes
