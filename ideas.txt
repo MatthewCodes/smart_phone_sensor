@@ -1,10 +1,20 @@
 Top three:
 1) Is it possible to predict heart rate from Skateboard speed
 
+Research has been done to detect the tricks performed by actors using gyroscopic sensors
+https://patents.google.com/patent/US20150335949A1/en
+
 2) Possible to predict what gear are you in for your bike based off of velocity and acceleration
+
+Similar research has been done regarding the use of accelerometer and gyroscope chips in smartphones to detect some aspect of cycling but not gear changes.
+http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A888082&dswid=7873
 
 3) Washing machine to detect when someone puts to many clothes in from movement of washing machine
 
+Seems like a lot of people have used a similar approach to detect when the washing machine stops, but I have not found one that does anomaly detection
+https://chester.me/archives/2017/12/motion-sensing-arduino-based-washing-machine-alarm/
+
+https://www.instructables.com/id/Washing-Machine-Notification-Sensor/
 
 Bottom three:
 4) Failing hard-drive 
