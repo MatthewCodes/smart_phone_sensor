@@ -4,10 +4,14 @@ Top three:
 Research has been done to detect the tricks performed by actors using gyroscopic sensors
 https://patents.google.com/patent/US20150335949A1/en
 
+Application: People who use skateboards can have a better understanding of when they should stopped working so hard in order to maximize the amount of distance traveled and minimize the amount of fatigue they feel
+
 2) Possible to predict what gear are you in for your bike based off of velocity and acceleration
 
 Similar research has been done regarding the use of accelerometer and gyroscope chips in smartphones to detect some aspect of cycling but not gear changes.
 http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A888082&dswid=7873
+
+Application: 
 
 3) Washing machine to detect when someone puts to many clothes in from movement of washing machine
 
@@ -15,6 +19,12 @@ Seems like a lot of people have used a similar approach to detect when the washi
 https://chester.me/archives/2017/12/motion-sensing-arduino-based-washing-machine-alarm/
 
 https://www.instructables.com/id/Washing-Machine-Notification-Sensor/
+
+
+Application: Companies can know when their first sensor has failed to estimate the amount of water needed for the load and add more accordingly
+
+
+
 
 Bottom three:
 4) Failing hard-drive 
