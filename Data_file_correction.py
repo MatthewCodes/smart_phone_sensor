@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 
 
+
+# Fourier implementation from https://docs.scipy.org/doc/scipy/reference/tutorial/fftpack.html
+
 #input_file = open('/mnt/c/Users/Mortagetti/Desktop/Sample_gyroscope_t1.txt')
 input_file = open('Sample_gyroscope_t1.txt')
 for i in range(0,8):
