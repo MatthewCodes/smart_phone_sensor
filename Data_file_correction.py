@@ -147,8 +147,10 @@ print('Everyting loaded correctly')
 acceleration_data = get_data('gear7_2', 'gear1_2', csv_file='MPU6500 Acceleration Sensor.csv')
 gyroscope_data    = get_data('gear7_2', 'gear1_2', csv_file='MPU6500 Gyroscope Sensor.csv')
 magnetometer_data = get_data('gear7_2', 'gear1_2', csv_file='YAS537 Magnetic Sensor.csv')
+
+# These numbers were selected to keep the data even for batches
 N = 1000
-T = 250
+T = 240
 
 
 def get_frames(acceleration, gyroscope, magnetometer):
@@ -180,7 +182,7 @@ magnetometer_dataframe1] = get_frames(acceleration_data,gyroscope_data,magnetome
 
 X_train0 = concat([acceleration_dataframe.iloc[0:N], gyroscope_dataframe.iloc[0:N], magnetometer_dataframe.iloc[0:N]],
                  axis=1)
-print(X_train0.shape)
+
 X_train1 = concat([acceleration_dataframe1.iloc[0:N], gyroscope_dataframe1.iloc[0:N], magnetometer_dataframe1.iloc[0:N]],
                    axis=1)
 
@@ -189,13 +191,12 @@ Y_train = np.array([0]*len(acceleration_dataframe.iloc[0:N]) + [1]*len(accelerat
 
 X_test0 = concat([acceleration_dataframe.iloc[N:N+T], gyroscope_dataframe.iloc[N:N+T], magnetometer_dataframe.iloc[N:N+T]],
                  axis=1)
-print(acceleration_dataframe.iloc[N:N+T].shape)
+
 X_test1 = concat([acceleration_dataframe1.iloc[N:N+T], gyroscope_dataframe1.iloc[N:N+T], magnetometer_dataframe1.iloc[N:N+T]],
                    axis=1)
 
 X_test = concat([X_test0, X_test1])
 Y_test = np.array([0]*len(acceleration_dataframe.iloc[N:N+T]) + [1]*len(acceleration_dataframe.iloc[N:N+T]))
-
 
 
 # Univariate Selection feature selection found on https://machinelearningmastery.com/feature-selection-machine-learning-python/
@@ -216,23 +217,68 @@ X_test = fit.transform(X_test)
 
 
 
+
 #####################################################
 
 # Bi-LSTM
+def generate_batches(training_size, batch_size):
+    batches = []
+    for i in range(0,training_size,batch_size):
+        batch = [i,i+batch_size]
+        batches.append(batch)
+    return batches
+
+
+n_timesteps = 10
+
 model = Sequential()
 
-LSTM_model = keras.layers.LSTM(1, activation='tanh', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=False)
+LSTM_model = keras.layers.LSTM(9, input_shape=(9,9), activation='tanh', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=True)
 
-model.add(keras.layers.Bidirectional(LSTM_model,input_shape=(482,8)))
-model.add(keras.layers.Flatten())
-model.add(Dense(5, activation='softmax'))
+model.add(keras.layers.Bidirectional(LSTM_model,input_shape=(9,9)))
+model.add(keras.layers.TimeDistributed(Dense(9,activation='softmax')))
+# model.add(keras.layers.Flatten())
+# model.add(Dense(5, activation='softmax'))
 
 model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+for epoch in range(10):
+    batches = generate_batches(len(X_train), 10)
 
-model.fit(X_train[0:20], Y_train[0:20], epochs=5, batch_size=10)
-loss_metrics = model.evaluate(X_test, Y_test, batch_size=120)
+    for batch in batches:
+        X = X_train[batch[0]:batch[1]]
+        Y = Y_train[batch[0]:batch[1]]
+        # print(X.shape)
+        # print(Y.shape)
+        data = np.column_stack((X,Y))
+        # print(data.shape)
+        X = data[:-1]
+        Y = data[1:]
+        # print(X.shape)
+        # print(Y.shape)
+        X = X.reshape((1, 9, 9))
+        Y = Y.reshape((1, 9, 9))
 
+        model.train_on_batch(X, Y)
+    print(epoch)
 
+batches = generate_batches(len(X_test), 10)
+
+for batch in batches:
+        X = X_test[batch[0]:batch[1]]
+        Y = Y_test[batch[0]:batch[1]]
+        # print(X.shape)
+        # print(Y.shape)
+        data = np.column_stack((X,Y))
+        # print(data.shape)
+        X = data[:-1]
+        Y = data[1:]
+        # print(X.shape)
+        # print(Y.shape)
+        X = X.reshape((1, 9, 9))
+        Y = Y.reshape((1, 9, 9))
+loss_metrics = model.evaluate(X, Y, batch_size=10)
+
+print(loss_metrics)
 ######################################################
 # Best so far is 75% with C = 1.9 gamma = scale and a poly kernel function
 # SVM
