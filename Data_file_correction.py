@@ -5,6 +5,8 @@ import numpy as np
 import keras
 from sklearn import svm
 from sklearn.preprocessing import normalize
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import make_classification
 import sklearn
 from pandas import Series
 from pandas import DataFrame
@@ -215,7 +217,15 @@ fit = test.fit(X_test, Y_test)
 np.set_printoptions(precision=3)
 X_test = fit.transform(X_test)
 
+data1 = np.column_stack((X_train, Y_train))
+data1 = DataFrame(data1)
+data1.to_csv('labeled_training.csv')
 
+
+data2 = np.column_stack((X_test, Y_test))
+data2 = DataFrame(data2)
+data2.to_csv('labeled_testing.csv')
+print('labeled')
 
 
 #####################################################
@@ -297,6 +307,6 @@ print(sklearn.metrics.mean_squared_error(Y_test, clf.predict(X_test)))
 
 #####################################################
 
-# DAG SVM
+# DAG SVM See matlab file
 
 
