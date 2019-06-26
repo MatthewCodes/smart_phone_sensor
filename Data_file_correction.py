@@ -1,12 +1,10 @@
 #from skfeature.function.similarity_based.fisher_score import fisher_score
 from scipy.fftpack import fft, rfft, irfft
-
 import numpy as np
 import keras
 from sklearn import svm
 from sklearn.preprocessing import normalize
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import make_classification
 import sklearn
 from pandas import Series
 from pandas import DataFrame
@@ -16,6 +14,7 @@ from sklearn.feature_selection import chi2
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
+from sklearn.model_selection import cross_val_score
 # Fourier implementation from https://docs.scipy.org/doc/scipy/reference/tutorial/fftpack.html
 
 #input_file = open('/mnt/c/Users/Mortagetti/Desktop/Sample_gyroscope_t1.txt')
@@ -60,8 +59,6 @@ def get_data(folder1, folder2, csv_file):
     # FT without smoothing
     ft = fft(acceleration_data)
 
-
-
     # FT with smoothing
     rft = rfft(acceleration_data)
     y_smooth = irfft(rft)
@@ -76,11 +73,9 @@ def get_data(folder1, folder2, csv_file):
     window  = shifted.rolling(window=width)
     dataframe = concat([window.min(), window.max(), window.mean(), temps], axis=1)
     #dataframe.columns = ["min", "max", "mean", "t+1"]
+
     # plt.plot(time[1:N], np.abs(y_smooth[1:N]), '-r')
     # plt.grid()
-
-
-
     # plt.show()
 
     incomplete_path = r'C:\Users\Mortagetti\Desktop\Notes for School\Summer_Research'
@@ -243,50 +238,45 @@ n_timesteps = 10
 
 model = Sequential()
 
-LSTM_model = keras.layers.LSTM(9, input_shape=(9,9), activation='tanh', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=True)
+LSTM_model = keras.layers.LSTM(32, input_shape=(9,8), activation='sigmoid', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=False)
 
-model.add(keras.layers.Bidirectional(LSTM_model,input_shape=(9,9)))
-model.add(keras.layers.TimeDistributed(Dense(9,activation='softmax')))
+model.add(keras.layers.Bidirectional(LSTM_model))
+model.add(keras.layers.TimeDistributed(Dense(8,activation='tanh'))) # Look into what this is, might need to be set to 9
 # model.add(keras.layers.Flatten())
 # model.add(Dense(5, activation='softmax'))
 
-model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
-for epoch in range(10):
-    batches = generate_batches(len(X_train), 10)
+model.compile(loss='mean_squared_error', optimizer='adam')
+for epoch in range(50):
+    batches = generate_batches(len(X_train), 20)
 
     for batch in batches:
         X = X_train[batch[0]:batch[1]]
         Y = Y_train[batch[0]:batch[1]]
-        # print(X.shape)
-        # print(Y.shape)
+
         data = np.column_stack((X,Y))
-        # print(data.shape)
-        X = data[:-1]
-        Y = data[1:]
-        # print(X.shape)
-        # print(Y.shape)
-        X = X.reshape((1, 9, 9))
-        Y = Y.reshape((1, 9, 9))
+
+        X = data[:,:-1]
+        Y = data[:,1:]
+
+        X = X.reshape((20, 1, 8))
+        Y = Y.reshape((20, 1, 8))
 
         model.train_on_batch(X, Y)
     print(epoch)
 
-batches = generate_batches(len(X_test), 10)
+batches = generate_batches(len(X_test), 20)
+batch = batches[0]
 
-for batch in batches:
-        X = X_test[batch[0]:batch[1]]
-        Y = Y_test[batch[0]:batch[1]]
-        # print(X.shape)
-        # print(Y.shape)
-        data = np.column_stack((X,Y))
-        # print(data.shape)
-        X = data[:-1]
-        Y = data[1:]
-        # print(X.shape)
-        # print(Y.shape)
-        X = X.reshape((1, 9, 9))
-        Y = Y.reshape((1, 9, 9))
-loss_metrics = model.evaluate(X, Y, batch_size=10)
+X = X_test[batch[0]:batch[1]]
+Y = Y_test[batch[0]:batch[1]]
+
+data = np.column_stack((X,Y))
+X = data[:,:-1]
+Y = data[:,1:]
+
+X = X.reshape((20, 1, 8))
+Y = Y.reshape((20, 1, 8))
+loss_metrics = model.evaluate(X, Y)
 
 print(loss_metrics)
 ######################################################
@@ -295,18 +285,23 @@ print(loss_metrics)
 clf = svm.SVC(C=1.9, gamma='scale', kernel='poly')
 clf.fit(X_train,Y_train)
 
-true_count = 0
 
-for output in range(0,len(X_test)):
-    if clf.predict(X_test)[output] == Y_test[output]:
-        true_count += 1
-
-print(true_count/len(X_test))
-
-print(sklearn.metrics.mean_squared_error(Y_test, clf.predict(X_test)))
+print(clf.score(X_test, Y_test))
+print(cross_val_score(clf, X_test, Y_test, cv=3))
 
 #####################################################
 
 # DAG SVM See matlab file
 
+#####################################################
 
+# Random Forest
+
+clf = RandomForestClassifier(n_estimators=15, criterion='entropy', max_depth=3, min_samples_split=20, bootstrap=True, random_state=0)
+
+clf.fit(X_train, Y_train)
+print(clf.feature_importances_)
+
+print(clf.score(X_test, Y_test))
+print(cross_val_score(clf, X_test, Y_test, cv=3))
+#####################################################
