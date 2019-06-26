@@ -15,6 +15,7 @@ import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
 from sklearn.model_selection import cross_val_score
+from keras.utils import to_categorical
 # Fourier implementation from https://docs.scipy.org/doc/scipy/reference/tutorial/fftpack.html
 
 #input_file = open('/mnt/c/Users/Mortagetti/Desktop/Sample_gyroscope_t1.txt')
@@ -230,7 +231,8 @@ def generate_batches(training_size, batch_size):
     batches = []
     for i in range(0,training_size,batch_size):
         batch = [i,i+batch_size]
-        batches.append(batch)
+        if batch[1] - batch[0] == batch_size and batch[1] < training_size:
+            batches.append(batch)
     return batches
 
 
@@ -238,16 +240,16 @@ n_timesteps = 10
 
 model = Sequential()
 
-LSTM_model = keras.layers.LSTM(32, input_shape=(9,8), activation='sigmoid', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=False)
+LSTM_model = keras.layers.LSTM(32, input_shape=(8,8), activation='sigmoid', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=False)
 
 model.add(keras.layers.Bidirectional(LSTM_model))
-model.add(keras.layers.TimeDistributed(Dense(8,activation='tanh'))) # Look into what this is, might need to be set to 9
+model.add(keras.layers.TimeDistributed(Dense(8,activation='softmax'))) # Look into what this is, might need to be set to 9
 # model.add(keras.layers.Flatten())
 # model.add(Dense(5, activation='softmax'))
 
-model.compile(loss='mean_squared_error', optimizer='adam')
+model.compile(loss='mean_absolute_error', optimizer='adam')
 for epoch in range(50):
-    batches = generate_batches(len(X_train), 20)
+    batches = generate_batches(len(X_train), 16)
 
     for batch in batches:
         X = X_train[batch[0]:batch[1]]
@@ -258,27 +260,29 @@ for epoch in range(50):
         X = data[:,:-1]
         Y = data[:,1:]
 
-        X = X.reshape((20, 1, 8))
-        Y = Y.reshape((20, 1, 8))
+        X = X.reshape((2, 8, 8))
+        Y = Y.reshape((2, 8, 8))
 
         model.train_on_batch(X, Y)
-    print(epoch)
 
-batches = generate_batches(len(X_test), 20)
-batch = batches[0]
 
-X = X_test[batch[0]:batch[1]]
-Y = Y_test[batch[0]:batch[1]]
+batches = generate_batches(len(X_test), 16)
+loss_metrics_min = []
+for batch in batches:
 
-data = np.column_stack((X,Y))
-X = data[:,:-1]
-Y = data[:,1:]
+    X = X_test[batch[0]:batch[1]]
+    Y = Y_test[batch[0]:batch[1]]
 
-X = X.reshape((20, 1, 8))
-Y = Y.reshape((20, 1, 8))
-loss_metrics = model.evaluate(X, Y)
+    data = np.column_stack((X,Y))
+    X = data[:,:-1]
+    Y = data[:,1:]
 
-print(loss_metrics)
+    # Formatted samples, timesteps, features
+    X = X.reshape((2, 8, 8))
+    Y = Y.reshape((2, 8, 8))
+    loss_metrics = model.evaluate(X, Y)
+    loss_metrics_min.append(loss_metrics)
+print(min(loss_metrics_min))
 ######################################################
 # Best so far is 75% with C = 1.9 gamma = scale and a poly kernel function
 # SVM
