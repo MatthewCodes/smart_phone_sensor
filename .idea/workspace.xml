@@ -32,9 +32,10 @@
     <session id="1656845766">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="17" />
+          <entry key="project.closed" value="18" />
           <entry key="project.open.time.10" value="1" />
           <entry key="project.open.time.11" value="1" />
+          <entry key="project.open.time.31" value="1" />
           <entry key="project.open.time.32" value="1" />
           <entry key="project.open.time.34" value="2" />
           <entry key="project.open.time.36" value="1" />
@@ -49,7 +50,7 @@
           <entry key="project.open.time.55" value="1" />
           <entry key="project.open.time.58" value="1" />
           <entry key="project.open.time.73" value="1" />
-          <entry key="project.opened" value="18" />
+          <entry key="project.opened" value="19" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -84,7 +85,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../annotation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="459">
+            <state relative-caret-position="476">
               <caret line="30" column="22" selection-start-line="30" selection-start-column="22" selection-end-line="30" selection-end-column="22" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
@@ -96,13 +97,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/script_location/Data_file_correction.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="217">
-              <caret line="408" lean-forward="true" selection-start-line="408" selection-end-line="408" />
-              <folding>
-                <element signature="e#5215#5436#0" />
-                <element signature="e#5478#5781#0" />
-                <element signature="e#5843#6313#0" />
-              </folding>
+            <state relative-caret-position="420">
+              <caret line="386" column="36" selection-start-line="386" selection-start-column="36" selection-end-line="386" selection-end-column="36" />
             </state>
           </provider>
         </entry>
@@ -146,9 +142,9 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="786" />
-    <option name="y" value="252" />
-    <option name="width" value="979" />
+    <option name="x" value="785" />
+    <option name="y" value="251" />
+    <option name="width" value="980" />
     <option name="height" value="1040" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -336,22 +332,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Data_file_correction.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="258">
-          <caret line="25" column="24" selection-start-line="25" selection-start-column="24" selection-end-line="25" selection-end-column="24" />
-          <folding>
-            <element signature="e#134#176#0" expanded="true" />
-            <element signature="e#2912#2995#0" />
-            <element signature="e#5282#5503#0" />
-            <element signature="e#5546#5849#0" />
-            <element signature="e#5911#6381#0" />
-            <element signature="e#14364#14689#0" />
-            <element signature="e#14551#14876#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Data_file_correction.py" />
     <entry file="file://$USER_HOME$/Anaconda3/envs/keras_env/Lib/site-packages/sklearn/svm/base.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="422">
@@ -361,7 +342,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../annotation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
+        <state relative-caret-position="476">
           <caret line="30" column="22" selection-start-line="30" selection-start-column="22" selection-end-line="30" selection-end-column="22" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
@@ -371,13 +352,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/script_location/Data_file_correction.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="217">
-          <caret line="408" lean-forward="true" selection-start-line="408" selection-end-line="408" />
-          <folding>
-            <element signature="e#5215#5436#0" />
-            <element signature="e#5478#5781#0" />
-            <element signature="e#5843#6313#0" />
-          </folding>
+        <state relative-caret-position="420">
+          <caret line="386" column="36" selection-start-line="386" selection-start-column="36" selection-end-line="386" selection-end-column="36" />
         </state>
       </provider>
     </entry>

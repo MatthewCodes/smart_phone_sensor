@@ -384,10 +384,10 @@ X_test = fit.transform(X_test)
 
 data1 = np.column_stack((X_train, Y_train))
 data1 = DataFrame(data1)
-
+data1.to_csv('labeled_training.csv')
 data2 = np.column_stack((X_test, Y_test))
 data2 = DataFrame(data2)
-
+data2.to_csv('labeled_testing.csv')
 
 #####################################################
 print("generating batches")
