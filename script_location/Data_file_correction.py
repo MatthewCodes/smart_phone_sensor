@@ -406,7 +406,7 @@ model.compile(loss='mean_squared_error', optimizer='adam')
 print("training Bi-LSTM")
 batches = generate_batches(len(X_train), 64)
 print("batches generated")
-"""
+
 for epoch in range(10):
 
     for batch in batches:
@@ -443,7 +443,7 @@ for batch in batches:
     loss_metrics_min.append(loss_metrics)
 
 print(min(loss_metrics_min))
-"""
+
 ######################################################
 # Best so far is 23% with C = 1.9 gamma = scale and a rbf kernel function
 # SVM
