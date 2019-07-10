@@ -244,16 +244,16 @@ magnetometer_data = get_data('gear7_2', csv_file='YAS537 Magnetic Sensor.csv')
 # This approach is splitting the data then separately choosing the best features in feature selection
 # another approach that might increase accuracy is by selecting the features first, then splitting the data
 
-X_train = concat([acceleration_dataframe.iloc[0:int((len(acceleration_dataframe) * 0.75)/2)],
-             gyroscope_dataframe.iloc[0:int((len(gyroscope_dataframe) * 0.75)/2)],
-                  magnetometer_dataframe.iloc[0:int((len(magnetometer_dataframe) * 0.75)/2)]],
+X_train = concat([acceleration_dataframe.iloc[0:int((len(acceleration_dataframe) * 0.75)/1)],
+             gyroscope_dataframe.iloc[0:int((len(gyroscope_dataframe) * 0.75)/1)],
+                  magnetometer_dataframe.iloc[0:int((len(magnetometer_dataframe) * 0.75)/1)]],
                  axis=1)
 
 Y_train = [22]*data_size_reduction(X_train, True)
 
-X_test = concat([acceleration_dataframe.iloc[int((len(acceleration_dataframe) * 0.75)/2):int((len(acceleration_dataframe) * 0.75)/2) + int((len(acceleration_dataframe) * 0.25)/2)],
-                gyroscope_dataframe.iloc[int((len(gyroscope_dataframe) * 0.75)/2):int((len(gyroscope_dataframe) * 0.75)/2) + int((len(gyroscope_dataframe) * 0.25)/2)],
-                magnetometer_dataframe.iloc[int((len(magnetometer_dataframe) * 0.75)/2):int((len(magnetometer_dataframe) * 0.75)/2) + int((len(magnetometer_dataframe) * 0.25)/2)]],
+X_test = concat([acceleration_dataframe.iloc[int((len(acceleration_dataframe) * 0.75)/1):int((len(acceleration_dataframe) * 0.75)/1) + int((len(acceleration_dataframe) * 0.25)/1)],
+                gyroscope_dataframe.iloc[int((len(gyroscope_dataframe) * 0.75)/1):int((len(gyroscope_dataframe) * 0.75)/1) + int((len(gyroscope_dataframe) * 0.25)/1)],
+                magnetometer_dataframe.iloc[int((len(magnetometer_dataframe) * 0.75)/1):int((len(magnetometer_dataframe) * 0.75)/1) + int((len(magnetometer_dataframe) * 0.25)/1)]],
                 axis=1)
 
 Y_test = [22]*data_size_reduction(X_test, True)
@@ -298,16 +298,16 @@ for folder in possible_folders:
                                                                                            gyroscope_data,
                                                                                            magnetometer_data)
         X_train1 = concat(
-            [acceleration_dataframe.iloc[0:int((len(acceleration_dataframe) * 0.75)/2)],
-             gyroscope_dataframe.iloc[0:int((len(gyroscope_dataframe) * 0.75)/2)],
-             magnetometer_dataframe.iloc[0:int((len(magnetometer_dataframe) * 0.75)/2)]],
+            [acceleration_dataframe.iloc[0:int((len(acceleration_dataframe) * 0.75)/1)],
+             gyroscope_dataframe.iloc[0:int((len(gyroscope_dataframe) * 0.75)/1)],
+             magnetometer_dataframe.iloc[0:int((len(magnetometer_dataframe) * 0.75)/1)]],
             axis=1)
 
         Y_train1 = [all_targets[target]] * data_size_reduction(X_train1, True)
 
-        X_test1 = concat([acceleration_dataframe.iloc[int((len(acceleration_dataframe) * 0.75)/2):int((len(acceleration_dataframe) * 0.75)/2) + int((len(acceleration_dataframe) * 0.25)/2)],
-                          gyroscope_dataframe.iloc[int((len(gyroscope_dataframe) * 0.75)/2):int((len(gyroscope_dataframe) * 0.75)/2) + int((len(gyroscope_dataframe) * 0.25)/2)],
-                         magnetometer_dataframe.iloc[int((len(magnetometer_dataframe) * 0.75)/2):int((len(magnetometer_dataframe) * 0.75)/2) + int((len(magnetometer_dataframe) * 0.25)/2)]],
+        X_test1 = concat([acceleration_dataframe.iloc[int((len(acceleration_dataframe) * 0.75)/1):int((len(acceleration_dataframe) * 0.75)/1) + int((len(acceleration_dataframe) * 0.25)/1)],
+                          gyroscope_dataframe.iloc[int((len(gyroscope_dataframe) * 0.75)/1):int((len(gyroscope_dataframe) * 0.75)/1) + int((len(gyroscope_dataframe) * 0.25)/1)],
+                         magnetometer_dataframe.iloc[int((len(magnetometer_dataframe) * 0.75)/1):int((len(magnetometer_dataframe) * 0.75)/1) + int((len(magnetometer_dataframe) * 0.25)/1)]],
                         axis=1)
 
         min_length = data_size_reduction(X_test1, True)
