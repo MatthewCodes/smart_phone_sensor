@@ -3,7 +3,7 @@
 #from skfeature.function.similarity_based.fisher_score import fisher_score
 from scipy.fftpack import fft, rfft, irfft
 
-from scipy import fftpack
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 import keras
@@ -25,7 +25,6 @@ def get_data(folder1, csv_file):
 
     incomplete_path = r'..'
     complete_path = incomplete_path + "\\" + folder1 + "\\" + csv_file
-    print(complete_path)
     input_file = open(complete_path, "r")
 
     time = []
@@ -179,6 +178,21 @@ def get_data(folder1, csv_file):
     return [dataframe]
 
 
+# Removing Nan from data
+def data_clean(data):
+
+    new_data = []
+    for col in data:
+        feature = np.array(data[col])
+        feature = np.nan_to_num(feature)
+        new_data.append(feature)
+    min = data_size_reduction(new_data, False)
+    data = new_data[0][0:min]
+    for i in range(1, 12):
+        data = np.column_stack((data, new_data[i][0:min]))
+    return data
+
+
 def generate_batches(training_size, batch_size):
     batches = []
     for i in range(0,training_size,batch_size):
@@ -321,42 +335,44 @@ print(Y_train.shape)
 print(X_test.shape)
 print(Y_test.shape)
 
+# To-Do = Data augmentation of training data( generate random numbers between .03 and .97 in an array the size of my data (row) and multiply it by each column in my data
 
 # data augmentation
 noisy_data = []
 print("starting data augmentation")
 X_test.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
 X_train.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
-for col in X_test:
-    feature = np.array(X_test[col])
+
+X_train = data_clean(X_train)
+X_train = DataFrame(X_train)
+X_train.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+
+X_test = data_clean(X_test)
+X_test = DataFrame(X_test)
+X_test.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+for col in X_train:
+    feature = np.array(X_train[col])
     # Used to replace nan with 0
     feature = np.nan_to_num(feature) #feature = feature[~np.isnan(feature)] use this to get rid of Nan
     # print(np.isnan(feature))
-    yy = np.abs(np.random.normal(np.nanmean(feature), np.nanstd(feature), size=len(feature)))
+    # Josh Data Aug
+    a = [random.uniform(0.03,.97) for i in range(0, len(feature))]
+    yy = np.multiply(a, feature)
+    #Matthew Data Aug
+    #yy = np.abs(np.random.normal(np.nanmean(feature), np.nanstd(feature), size=len(feature)))
     noisy_data.append(yy)
 
-max = data_size_reduction(noisy_data, False)
-X_test = noisy_data[0][0:max]
+#noisy_data = np.swapaxes(noisy_data)
+####### Left off here doing my data augmentation, next is to do Josh's version then decrease the learning rate and finally find the right Epoch number by stopping early to decrease over fitting
+
+X_train = noisy_data[0]
 for i in range(1,12):
-    X_test = np.column_stack((X_test, noisy_data[i][0:max]))
+    X_train = np.column_stack((X_train, noisy_data[i]))
 
 
-# Removing Nan from data
-def data_clean(data):
-
-    new_data = []
-    for col in data:
-        feature = np.array(data[col])
-        feature = np.nan_to_num(feature)
-        new_data.append(feature)
-    min = data_size_reduction(new_data, False)
-    data = new_data[0][0:min]
-    for i in range(1, 12):
-        data = np.column_stack((data, new_data[i][0:min]))
-    return data
 
 
-X_train = data_clean(X_train)
+
 
 
 print("After Cleaning")
@@ -392,62 +408,79 @@ data2.to_csv('labeled_testing.csv')
 #####################################################
 print("generating batches")
 # Bi-LSTM
-
-n_timesteps = 10
-
-model = Sequential()
-
-LSTM_model = keras.layers.LSTM(32, input_shape=(8,8), activation='sigmoid', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=False)
-
-model.add(keras.layers.Bidirectional(LSTM_model))
-model.add(keras.layers.TimeDistributed(Dense(8,activation='softmax'))) # Look into what this is, might need to be set to 9
-
-model.compile(loss='mean_squared_error', optimizer='adam')
-print("training Bi-LSTM")
 batches = generate_batches(len(X_train), 64)
-print("batches generated")
+test_batches = generate_batches(len(X_test), 64)
 
-for epoch in range(10):
 
-    for batch in batches:
-        X = X_train[batch[0]:batch[1]]
-        Y = Y_train[batch[0]:batch[1]]
+def lstm(train_batch, test_batch, X_train, Y_train, X_test, Y_test):
+    total_loss = []
 
-        data = np.column_stack((X,Y))
+    model = Sequential()
 
-        X = data[:,:-1]
-        Y = data[:,1:]
+    LSTM_model = keras.layers.LSTM(32, input_shape=(8,8), activation='sigmoid', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True, kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1, return_sequences=True, return_state=False, go_backwards=False, stateful=False, unroll=False)
 
-        X = X.reshape((2, 32, 8))
-        Y = Y.reshape((2, 32, 8))
+    model.add(keras.layers.Bidirectional(LSTM_model))
+    model.add(keras.layers.TimeDistributed(Dense(8,activation='softmax'))) # Look into what this is, might need to be set to 9
+    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    model.compile(loss='mean_squared_error', optimizer=adam)
+    print("training Bi-LSTM")
 
-        model.train_on_batch(X, Y)
-    print("Epoch: " + str(epoch))
+    print("batches generated")
 
-batches = generate_batches(len(X_test), 64)
-loss_metrics_min = []
+    for epoch in range(100):
+        batch_num = 1
+        for batch in train_batch:
+            X = X_train[batch[0]:batch[1]]
+            Y = Y_train[batch[0]:batch[1]]
 
-for batch in batches:
+            data = np.column_stack((X,Y))
 
-    X = X_test[batch[0]:batch[1]]
-    Y = Y_test[batch[0]:batch[1]]
+            X = data[:,:-1]
+            Y = data[:,1:]
 
-    data = np.column_stack((X,Y))
-    X = data[:,:-1]
-    Y = data[:,1:]
+            X = X.reshape((2, 32, 8))
+            Y = Y.reshape((2, 32, 8))
 
-    # Formatted samples, timesteps, features
-    X = X.reshape((2, 32, 8))
-    Y = Y.reshape((2, 32, 8))
-    loss_metrics = model.evaluate(X, Y)
-    loss_metrics_min.append(loss_metrics)
+            model.train_on_batch(X, Y)
+            if batch_num % 15 == 0:
+                batch = train_batch[random.randint(0,len(test_batch)- 1)]
+                X = X_test[batch[0]:batch[1]]
+                Y = Y_test[batch[0]:batch[1]]
+                data = np.column_stack((X, Y))
+                X = data[:, :-1]
+                Y = data[:, 1:]
 
-print(min(loss_metrics_min))
+                # Formatted samples, timesteps, features
+                X = X.reshape((2, 32, 8))
+                Y = Y.reshape((2, 32, 8))
+                loss = model.test_on_batch(X,Y)
+                total_loss.append(loss)
+                if len(total_loss) > 10:
+                    if sum(total_loss[len(total_loss)-10:len(total_loss)-1]) < 0.01:
+                        print(loss)
+                        return model
+            batch_num += 1
+        print("Epoch: " + str(epoch))
+
+
+model = lstm(batches, test_batches, X_train, Y_train, X_test, Y_test)
+
+# loss_metrics_min = []
+# # Random batch selected
+# batch = batches[14]
+#
+#
+#
+#
+# loss_metrics = model.evaluate(X, Y)
+# loss_metrics_min.append(loss_metrics)
+#
+# print(min(loss_metrics_min))
 
 ######################################################
 # Best so far is 23% with C = 1.9 gamma = scale and a rbf kernel function
 # SVM
-clf = svm.SVC(C=1.6, kernel='rbf', degree=8) #gamma'scaled'
+clf = svm.SVC(C=1.9, kernel='rbf', degree=8) #gamma'scaled'
 print("training SVM")
 clf.fit(X_train,Y_train)
 
@@ -463,7 +496,7 @@ print(cross_val_score(clf, X_test, Y_test, cv=3))
 
 # Random Forest
 
-clf = RandomForestClassifier(n_estimators=15, criterion='entropy', max_depth=3, min_samples_split=20, bootstrap=True, random_state=0)
+clf = RandomForestClassifier(n_estimators=25, criterion='entropy', max_depth=15, min_samples_split=20, bootstrap=True, random_state=0)
 print("training Random Forest")
 clf.fit(X_train, Y_train)
 
