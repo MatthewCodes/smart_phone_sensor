@@ -82,7 +82,7 @@ def get_data(folder1, csv_file):
     width   = 5
     shifted = temps.shift(width - 1)
     window  = shifted.rolling(window=width)
-    dataframe = concat([window.min(), window.max(), window.mean(), temps], axis=1)
+    dataframe = concat([window.min(), window.max(), window.mean()], axis=1)
 
     # Plot the bins for the timeseries data
     """
@@ -179,7 +179,7 @@ def get_data(folder1, csv_file):
 
 
 # Removing Nan from data
-def data_clean(data):
+def data_clean(data, column):
 
     new_data = []
     for col in data:
@@ -188,7 +188,7 @@ def data_clean(data):
         new_data.append(feature)
     min = data_size_reduction(new_data, False)
     data = new_data[0][0:min]
-    for i in range(1, 12):
+    for i in range(1, column):
         data = np.column_stack((data, new_data[i][0:min]))
     return data
 
@@ -238,8 +238,13 @@ gyroscope_data = get_data('gear7_2', csv_file='MPU6500 Gyroscope Sensor.csv')
 magnetometer_data = get_data('gear7_2', csv_file='YAS537 Magnetic Sensor.csv')
 
 
-[acceleration_dataframe, gyroscope_dataframe, magnetometer_dataframe] = get_frames(acceleration_data,gyroscope_data,magnetometer_data)
-
+a = get_frames(acceleration_data,gyroscope_data,magnetometer_data)
+acceleration_dataframe = a[0]
+acceleration_dataframe.columns = ['x', 'y', 'z']
+gyroscope_dataframe = a[1]
+gyroscope_dataframe.columns = ['x', 'y', 'z']
+magnetometer_dataframe = a[2]
+magnetometer_dataframe.columns = ['x', 'y', 'z']
 
 # This approach is splitting the data then separately choosing the best features in feature selection
 # another approach that might increase accuracy is by selecting the features first, then splitting the data
@@ -282,46 +287,54 @@ all_targets = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
 
 for folder in possible_folders:
     try:
-        target = 0
-        if folder[1] == '1':
             target = 0
-        elif folder[1] == '4':
-            target = 1
-        else:
-            target = 2
+            if folder[1] == '1':
+                target = 0
+            elif folder[1] == '4':
+                target = 1
+            else:
+                target = 2
 
-        acceleration_data = get_data(folder, csv_file='MPU6500 Acceleration Sensor.csv')
-        gyroscope_data = get_data(folder, csv_file='MPU6500 Gyroscope Sensor.csv')
-        magnetometer_data = get_data(folder, csv_file='YAS537 Magnetic Sensor.csv')
+            acceleration_data = get_data(folder, csv_file='MPU6500 Acceleration Sensor.csv')
+            gyroscope_data = get_data(folder, csv_file='MPU6500 Gyroscope Sensor.csv')
+            magnetometer_data = get_data(folder, csv_file='YAS537 Magnetic Sensor.csv')
 
-        [acceleration_dataframe, gyroscope_dataframe, magnetometer_dataframe] = get_frames(acceleration_data,
-                                                                                           gyroscope_data,
-                                                                                           magnetometer_data)
-        X_train1 = concat(
-            [acceleration_dataframe.iloc[0:int((len(acceleration_dataframe) * 0.75)/1)],
-             gyroscope_dataframe.iloc[0:int((len(gyroscope_dataframe) * 0.75)/1)],
-             magnetometer_dataframe.iloc[0:int((len(magnetometer_dataframe) * 0.75)/1)]],
-            axis=1)
-
-        Y_train1 = [all_targets[target]] * data_size_reduction(X_train1, True)
-
-        X_test1 = concat([acceleration_dataframe.iloc[int((len(acceleration_dataframe) * 0.75)/1):int((len(acceleration_dataframe) * 0.75)/1) + int((len(acceleration_dataframe) * 0.25)/1)],
-                          gyroscope_dataframe.iloc[int((len(gyroscope_dataframe) * 0.75)/1):int((len(gyroscope_dataframe) * 0.75)/1) + int((len(gyroscope_dataframe) * 0.25)/1)],
-                         magnetometer_dataframe.iloc[int((len(magnetometer_dataframe) * 0.75)/1):int((len(magnetometer_dataframe) * 0.75)/1) + int((len(magnetometer_dataframe) * 0.25)/1)]],
-                        axis=1)
-
-        min_length = data_size_reduction(X_test1, True)
-        Y_test1 = [all_targets[target]] * min_length
+            a = get_frames(acceleration_data, gyroscope_data, magnetometer_data)
+            acceleration_dataframe = a[0]
+            acceleration_dataframe.columns = ['x', 'y', 'z']
+            gyroscope_dataframe = a[1]
+            gyroscope_dataframe.columns = ['x', 'y', 'z']
+            magnetometer_dataframe = a[2]
+            magnetometer_dataframe.columns = ['x', 'y', 'z']
 
 
-        # Used if you want to have each gear and derailleur combination be a class
-        all_targets.pop(0)
+            #minn = min([data_size_reduction(acceleration_dataframe, True), data_size_reduction(gyroscope_dataframe, True), data_size_reduction(magnetometer_dataframe, True)])
+            X_train1 = concat(
+                [acceleration_dataframe.iloc[0:int((len(acceleration_dataframe) * 0.75)/1)],
+                 gyroscope_dataframe.iloc[0:int((len(gyroscope_dataframe) * 0.75)/1)],
+                 magnetometer_dataframe.iloc[0:int((len(magnetometer_dataframe) * 0.75)/1)]],
+                axis=1)
 
-        # Adds the new data to the existing matrix of data
-        X_train = concat([X_train, X_train1], axis=0)
-        Y_train = Y_train + Y_train1
-        X_test = concat([X_test, X_test1], axis=0)
-        Y_test = Y_test + Y_test1
+            Y_train1 = [target] * data_size_reduction(X_train1, True)
+
+            X_test1 = concat([acceleration_dataframe.iloc[int((len(acceleration_dataframe) * 0.75)/1):int((len(acceleration_dataframe) * 0.75)/1) + int((len(acceleration_dataframe) * 0.25)/1)],
+                              gyroscope_dataframe.iloc[int((len(gyroscope_dataframe) * 0.75)/1):int((len(gyroscope_dataframe) * 0.75)/1) + int((len(gyroscope_dataframe) * 0.25)/1)],
+                             magnetometer_dataframe.iloc[int((len(magnetometer_dataframe) * 0.75)/1):int((len(magnetometer_dataframe) * 0.75)/1) + int((len(magnetometer_dataframe) * 0.25)/1)]],
+                            axis=1)
+
+            min_length = data_size_reduction(X_test1, True)
+
+            Y_test1 = [target] * min_length
+
+
+            # Used if you want to have each gear and derailleur combination be a class
+            all_targets.pop(0)
+
+            # Adds the new data to the existing matrix of data
+            X_train = concat([X_train, X_train1], axis=0)
+            Y_train = Y_train + Y_train1
+            X_test = concat([X_test, X_test1], axis=0)
+            Y_test = Y_test + Y_test1
 
 
     except:
@@ -340,16 +353,16 @@ print(Y_test.shape)
 # data augmentation
 noisy_data = []
 print("starting data augmentation")
-X_test.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
-X_train.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+X_test.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
+X_train.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
 
-X_train = data_clean(X_train)
+X_train = data_clean(X_train, 9)
 X_train = DataFrame(X_train)
-X_train.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+X_train.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
 
-X_test = data_clean(X_test)
+X_test = data_clean(X_test, 9)
 X_test = DataFrame(X_test)
-X_test.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+X_test.columns = ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
 for col in X_train:
     feature = np.array(X_train[col])
     # Used to replace nan with 0
@@ -366,7 +379,7 @@ for col in X_train:
 ####### Left off here doing my data augmentation, next is to do Josh's version then decrease the learning rate and finally find the right Epoch number by stopping early to decrease over fitting
 
 X_train = noisy_data[0]
-for i in range(1,12):
+for i in range(1,9):
     X_train = np.column_stack((X_train, noisy_data[i]))
 
 
@@ -392,8 +405,8 @@ np.set_printoptions(precision=3)
 X_train = fit.transform(X_train)
 
 # feature extraction for Testing
-test = SelectKBest(score_func=chi2, k=8)
-fit = test.fit(X_test, Y_test)
+test2 = SelectKBest(score_func=chi2, k=8)
+fit = test2.fit(X_test, Y_test)
 # summarize scores
 np.set_printoptions(precision=3)
 X_test = fit.transform(X_test)
@@ -411,7 +424,8 @@ print("generating batches")
 batches = generate_batches(len(X_train), 64)
 test_batches = generate_batches(len(X_test), 64)
 
-
+print(X_train)
+print(X_test)
 def lstm(train_batch, test_batch, X_train, Y_train, X_test, Y_test):
     total_loss = []
 
@@ -456,7 +470,7 @@ def lstm(train_batch, test_batch, X_train, Y_train, X_test, Y_test):
                 loss = model.test_on_batch(X,Y)
                 total_loss.append(loss)
                 if len(total_loss) > 10:
-                    if sum(total_loss[len(total_loss)-10:len(total_loss)-1]) < 0.01:
+                    if sum(total_loss[len(total_loss)-10:len(total_loss)-1]) < 0.1:
                         print(loss)
                         return model
             batch_num += 1
@@ -480,7 +494,7 @@ model = lstm(batches, test_batches, X_train, Y_train, X_test, Y_test)
 ######################################################
 # Best so far is 23% with C = 1.9 gamma = scale and a rbf kernel function
 # SVM
-clf = svm.SVC(C=1.9, kernel='rbf', degree=8) #gamma'scaled'
+clf = svm.SVC(C=1.9, kernel='rbf', degree=8, gamma='scale') #gamma'scaled'
 print("training SVM")
 clf.fit(X_train,Y_train)
 
