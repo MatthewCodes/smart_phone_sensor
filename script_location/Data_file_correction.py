@@ -2,7 +2,7 @@
 
 #from skfeature.function.similarity_based.fisher_score import fisher_score
 from scipy.fftpack import fft, rfft, irfft
-
+from scipy import fftpack
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -62,10 +62,10 @@ def get_data(folder1, csv_file):
 
     # plot the raw timeseries data
     """
-    N1 = len(acceleration_data)
+    N1 = len(data)
     T1 = 1.0 /2000
     x = np.linspace(0.0, N1*T1, N1)
-    yf = rfft(acceleration_data)
+    yf = rfft(data)
     xf = np.linspace(0.0, 1.0/(2.0*T), N//2)
     plt.plot(xf, 2.0/N * np.abs(yf[0:N//2]))
     plt.show()
@@ -88,8 +88,8 @@ def get_data(folder1, csv_file):
     """
     fig, ax = plt.subplots()
     f_s = 100
-    freqs = fftpack.fftfreq(len(acceleration_data)) * f_s
-    ax.stem(freqs, np.abs(y_smooth))
+    freqs = fftpack.fftfreq(len(data)) * f_s
+    ax.stem(freqs, np.abs(y_smooth), use_line_collection=True )
     ax.set_xlim(-f_s / 2, f_s / 2)
     ax.set_ylim(-5, 3000)
     series.plot.hist(grid=True, bins=20)
@@ -435,13 +435,13 @@ def lstm(train_batch, test_batch, X_train, Y_train, X_test, Y_test):
 
     model.add(keras.layers.Bidirectional(LSTM_model))
     model.add(keras.layers.TimeDistributed(Dense(8,activation='softmax'))) # Look into what this is, might need to be set to 9
-    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    model.compile(loss='mean_squared_error', optimizer=adam)
+    #adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    model.compile(loss='mean_squared_error', optimizer='adam')
     print("training Bi-LSTM")
 
     print("batches generated")
 
-    for epoch in range(100):
+    for epoch in range(150):
         batch_num = 1
         for batch in train_batch:
             X = X_train[batch[0]:batch[1]]
@@ -457,7 +457,7 @@ def lstm(train_batch, test_batch, X_train, Y_train, X_test, Y_test):
 
             model.train_on_batch(X, Y)
             if batch_num % 15 == 0:
-                batch = train_batch[random.randint(0,len(test_batch)- 1)]
+                batch = test_batch[random.randint(0,len(test_batch)- 1)]
                 X = X_test[batch[0]:batch[1]]
                 Y = Y_test[batch[0]:batch[1]]
                 data = np.column_stack((X, Y))
@@ -470,15 +470,26 @@ def lstm(train_batch, test_batch, X_train, Y_train, X_test, Y_test):
                 loss = model.test_on_batch(X,Y)
                 total_loss.append(loss)
                 if len(total_loss) > 10:
-                    if sum(total_loss[len(total_loss)-10:len(total_loss)-1]) < 0.1:
-                        print(loss)
+                    if sum(total_loss[len(total_loss)-10:]) < 0.1:
                         return model
             batch_num += 1
+
         print("Epoch: " + str(epoch))
 
 
 model = lstm(batches, test_batches, X_train, Y_train, X_test, Y_test)
+batch = test_batches[random.randint(0,len(test_batches)- 1)]
+X = X_test[batch[0]:batch[1]]
+Y = Y_test[batch[0]:batch[1]]
+data = np.column_stack((X, Y))
+X = data[:, :-1]
+Y = data[:, 1:]
 
+# Formatted samples, timesteps, features
+X = X.reshape((2, 32, 8))
+Y = Y.reshape((2, 32, 8))
+loss = model.test_on_batch(X,Y)
+print("Loss for LSTM: " + str(loss))
 # loss_metrics_min = []
 # # Random batch selected
 # batch = batches[14]
